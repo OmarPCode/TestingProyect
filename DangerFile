@@ -1,0 +1,43 @@
+# Dangerfile
+
+# Verifica que el título del commit tenga un máximo de 50 caracteres
+def check_commit_title_length
+    commit_title = git.commits.last.message.lines.first.chomp
+    if commit_title.length > 50
+      fail("El título del commit debe tener un máximo de 50 caracteres.")
+    end
+  end
+  
+  # Verifica que haya una línea vacía entre el título y la descripción
+  def check_empty_line_between_title_and_description
+    commit_message = git.commits.last.message
+    if commit_message.lines.count < 2 || !commit_message.lines[1].strip.empty?
+      fail("Debe haber una línea vacía entre el título y la descripción del commit.")
+    end
+  end
+  
+  # Verifica que la descripción tenga al menos 5 caracteres
+  def check_description_length
+    commit_message = git.commits.last.message
+    description = commit_message.lines[2..-1]&.join || ""
+    if description.strip.length < 5
+      fail("La descripción del commit debe tener al menos 5 caracteres.")
+    end
+  end
+  
+  # Verifica que cada línea de la descripción no tenga más de 72 caracteres
+  def check_description_line_length
+    commit_message = git.commits.last.message
+    description_lines = commit_message.lines[2..-1] || []
+    description_lines.each_with_index do |line, index|
+      if line.chomp.length > 72
+        fail("La línea #{index + 1} de la descripción supera los 72 caracteres.")
+      end
+    end
+  end
+  
+  # Ejecuta las verificaciones
+  check_commit_title_length
+  check_empty_line_between_title_and_description
+  check_description_length
+  check_description_line_length
