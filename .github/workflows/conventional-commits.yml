@@ -2,16 +2,17 @@ name: Conventional Commits
 
 on:
   pull_request:
-    branches: [ main ]
+    types: [opened, synchronize, reopened]
 
 jobs:
-  build:
-    name: Conventional Commits
+  conventional-commits:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
 
-      - uses: webiny/action-conventional-commits@v1.3.0
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Conventional Commits Check
+        uses: webiny/action-conventional-commits@v1.2.0
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Optional, for private repositories.
-          allowed-commit-types: "feat,fix" # Optional, set if you want a subset of commit types to be allowed.
+          token: ${{ secrets.GITHUB_TOKEN }}
