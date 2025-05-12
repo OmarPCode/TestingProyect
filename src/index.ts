@@ -43,7 +43,7 @@ const httpServer = createServer(app);
 
 const io = new Server(httpServer, {
   cors: {
-    origin: "https://ige-front.onrender.com", // TODO: Cambiar a la url en deploy
+    origin: "http://localhost:3001", // TODO: Cambiar a la url en deploy
     methods: ["GET", "POST", "PUT", "DELETE"],
   },
 });
@@ -67,7 +67,7 @@ mongoose
 
     const io = new Server(server, {
       cors: {
-        origin: "https://ige-front.onrender.com", // Cambiar a la URL específica si es necesario
+        origin: "http://localhost:3001", // Cambiar a la URL específica si es necesario
         methods: ["GET", "POST", "PUT", "DELETE"],
       },
     });
