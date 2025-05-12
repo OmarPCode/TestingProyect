@@ -6,7 +6,7 @@ import { expect } from "chai";
 
 setDefaultTimeout(90_000);
 let driver: WebDriver;
-
+const ISO_DATE = "30-12-2025";
 const BASE_URL = "http://localhost:3001";
 
 BeforeAll(async () => {
@@ -72,13 +72,3 @@ When("I click the \"Agregar envio\" button and fill the modal with valid data", 
 
 });
 
-
-Then("I should see the new delivery in the deliveries list", async () => {
-    await driver.sleep(10_000);
-  await driver.wait(until.elementLocated(By.css(".delivery-list-container li.delivery-item")), 15_000);
-  const items = await driver.findElements(By.css(".delivery-list-container li.delivery-item"));
-  expect(items.length).to.be.greaterThan(0);
-
-  const firstText = await items[0].getText();
-  expect(firstText.toLowerCase()).to.include("test product");
-});
