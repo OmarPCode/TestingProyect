@@ -1,22 +1,40 @@
 Feature: Deliveries API
-  As a user of the API
-  I want to manage deliveries
-  So that I can create, update, and retrieve delivery information
 
-  Scenario: Retrieve all deliveries
-    Given the database contains deliveries
-    When I send a GET request to "/deliveries"
-    Then I should receive a 200 status code
-    And the response should contain a list of deliveries
+  Background:
+    Given an authenticated admin token
+    And a driver exists
 
-  Scenario: Create a new delivery
-    Given I have valid delivery data
-    When I send a POST request to "/deliveries" with the data
-    Then I should receive a 201 status code
-    And the response should contain the created delivery
+  Scenario: Create a delivery
+    When I POST /deliveries with a valid payload
+    Then the response status should be 200
+    And the body should contain a deliveryId
 
-  Scenario: Retrieve a delivery by ID
-    Given a delivery exists with ID "d123"
-    When I send a GET request to "/deliveries/d123"
-    Then I should receive a 200 status code
-    And the response should contain the delivery details
+  Scenario: List deliveries
+    Given a delivery already exists
+    When I GET /deliveries
+    Then the response status should be 200
+    And the body should contain a non‑empty deliveries array
+
+  Scenario: Get delivery by id
+    Given a delivery already exists
+    When I GET /deliveries/{deliveryId}
+    Then the response status should be 200
+    And the body.deliveryId should equal {deliveryId}
+
+  Scenario: Update a delivery
+    Given a delivery already exists
+    When I PUT /deliveries/{deliveryId} with { "status": "stopped" }
+    Then the response status should be 200
+    And the body.status should equal "stopped"
+
+  Scenario: Delete a delivery
+    Given a delivery already exists
+    When I DELETE /deliveries/{deliveryId}
+    Then the response status should be 200
+    And the delivery should no longer exist in the database
+
+  Scenario: Get deliveries by driver
+    Given a delivery already exists
+    When I GET /deliveries/byDriver?driverId={driverId}
+    Then the response status should be 200
+    And every returned delivery should belong to {driverId}

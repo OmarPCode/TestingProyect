@@ -1,98 +1,146 @@
-import { Given, When, Then } from '@cucumber/cucumber';
-import request from 'supertest';
-import app from '../../server.mock';
-let chai: typeof import('chai');
-(async () => {
-  chai = await import('chai');
-})();
-const { expect } = chai;
+import { Given, When, Then, BeforeAll, AfterAll, setDefaultTimeout } from "@cucumber/cucumber";
+import request from "supertest";
+import mongoose from "mongoose";
+import { MongoMemoryServer } from "mongodb-memory-server";
+import express from "express";
+import bodyParser from "body-parser";
+import jwt from "jsonwebtoken";
+import { expect } from "chai";
+import User from "../../../models/user.model";
+import Delivery from "../../../models/delivery.model";
+import { v4 as uuidv4 } from "uuid";
 
+setDefaultTimeout(60_000);
 
-let response: request.Response;
+/****  GLOBALS ****/
+let app: express.Application;
+let mongo: MongoMemoryServer;
+let adminToken: string;
+let driverId: string;
+let lastResponse: request.Response;
+let lastDeliveryId: string;
 
-Given('the database contains deliveries', async () => {
-  // Mock the database to contain deliveries
-  jest.mock('../../../models/delivery.model', () => ({
-    find: jest.fn().mockResolvedValue([
-      {
-        deliveryId: 'd123',
-        assignedTo: '123',
-        pickupLocation: 'Location A',
-        deliveryLocation: 'Location B',
-        status: 'in-progress',
-        scheduledTime: new Date(),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    ]),
-  }));
+/****  HELPERS ****/
+const authHeader = (req: request.Test) =>
+  req.set("authorization", `Bearer ${adminToken}`); // use lowercase header so req.headers["authorization"] works
+
+const validPayload = () => ({
+  assignedTo: driverId,
+  pickupLocation: "Warehouse B",
+  deliveryLocation: "456 Elm St",
+  scheduledTime: new Date().toISOString(),
+  productDetails: {
+    name: "Widget",
+    description: "Std",
+    quantity: 1,
+    productId: uuidv4(),
+  },
 });
 
-When('I send a GET request to {string}', async (endpoint: string) => {
-  response = await request(app).get(endpoint);
+/****  HOOKS ****/
+BeforeAll(async () => {
+  // set secret *before* the router/middleware is imported
+  process.env.JWT_SECRET = "testsecret";
+
+  mongo = await MongoMemoryServer.create();
+  await mongoose.connect(mongo.getUri());
+
+  // create minimal express app lazily after we have secret
+  const { default: deliveriesRouter } = await import("../../../routes/deliveries.routes");
+
+  app = express();
+  app.use(bodyParser.json());
+  app.use("/deliveries", deliveriesRouter);
+
+  // seed driver
+  driverId = uuidv4();
+  await User.create({
+    userId: driverId,
+    name: "BDD Driver",
+    email: "bdd_driver@example.com",
+    password: "hashed",
+    role: "driver",
+  });
+
+  // build token compatible with authenticate middleware (expects id + role)
+  adminToken = jwt.sign({ id: uuidv4(), role: "admin" }, process.env.JWT_SECRET!);
 });
 
-Then('I should receive a {int} status code', (statusCode: number) => {
-  expect(response.status).to.equal(statusCode);
+AfterAll(async () => {
+  await mongoose.disconnect();
+  await mongo.stop();
 });
 
-Then('the response should contain a list of deliveries', () => {
-  expect(response.body).to.be.an('array');
-  expect(response.body[0]).to.have.property('deliveryId', 'd123');
+/****  STEP DEFINITIONS ****/
+Given("an authenticated admin token", function () {});
+Given("a driver exists", function () {});
+
+When(/^I POST \/deliveries with a valid payload$/, async function () {
+  lastResponse = await authHeader(request(app).post("/deliveries")).send(validPayload());
+  if (lastResponse.body.deliveryId) lastDeliveryId = lastResponse.body.deliveryId;
 });
 
-Given('I have valid delivery data', () => {
-  // Mock valid delivery data
-  jest.mock('../../../models/delivery.model', () => ({
-    create: jest.fn().mockResolvedValue({
-      deliveryId: 'd124',
-      assignedTo: '123',
-      pickupLocation: 'Location C',
-      deliveryLocation: 'Location D',
-      status: 'pending',
-      scheduledTime: new Date(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }),
-  }));
+When(/^I GET \/deliveries$/, async function () {
+  lastResponse = await authHeader(request(app).get("/deliveries"));
 });
 
-When('I send a POST request to {string} with the data', async (endpoint: string) => {
-  const newDelivery = {
-    assignedTo: '123',
-    pickupLocation: 'Location C',
-    deliveryLocation: 'Location D',
-    scheduledTime: new Date().toISOString(),
-    productDetails: { name: 'Product A', quantity: 1 },
-  };
-  response = await request(app).post(endpoint).send(newDelivery);
+When(/^I GET \/deliveries\/\{deliveryId\}$/, async function () {
+  lastResponse = await authHeader(request(app).get(`/deliveries/${lastDeliveryId}`));
 });
 
-Then('the response should contain the created delivery', () => {
-  expect(response.body).to.have.property('deliveryId', 'd124');
-  expect(response.body).to.have.property('pickupLocation', 'Location C');
+When(/^I PUT \/deliveries\/\{deliveryId\} with (.*)$/, async function (json: string) {
+  lastResponse = await authHeader(request(app).put(`/deliveries/${lastDeliveryId}`)).send(JSON.parse(json));
 });
 
-Given('a delivery exists with ID {string}', (deliveryId: string) => {
-  jest.mock('../../../models/delivery.model', () => ({
-    findOne: jest.fn().mockResolvedValue({
-      deliveryId,
-      assignedTo: '123',
-      pickupLocation: 'Location A',
-      deliveryLocation: 'Location B',
-      status: 'in-progress',
-      scheduledTime: new Date(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }),
-  }));
+When(/^I DELETE \/deliveries\/\{deliveryId\}$/, async function () {
+  lastResponse = await authHeader(request(app).delete(`/deliveries/${lastDeliveryId}`));
 });
 
-When('I send a GET request to {string}', async (endpoint: string) => {
-  response = await request(app).get(endpoint);
+When(/^I GET \/deliveries\/byDriver\?driverId=\{driverId\}$/, async function () {
+  lastResponse = await authHeader(request(app).get("/deliveries/byDriver")).query({ driverId });
 });
 
-Then('the response should contain the delivery details', () => {
-  expect(response.body).to.have.property('deliveryId', 'd123');
-  expect(response.body).to.have.property('pickupLocation', 'Location A');
+/****  ASSERTIONS ****/
+Then(/^the response status should be (\d+)$/, function (code: string) {
+  expect(lastResponse.status).to.equal(parseInt(code, 10));
+});
+
+Then(/^the body should contain a deliveryId$/, function () {
+  expect(lastResponse.body).to.have.property("deliveryId");
+});
+
+Then(/^the body should contain a non‑empty deliveries array$/, function () {
+  expect(lastResponse.body.deliveries).to.be.an("array").that.is.not.empty;
+});
+
+Then(/^the body\.deliveryId should equal \{deliveryId\}$/, function () {
+  expect(lastResponse.body.deliveryId).to.equal(lastDeliveryId);
+});
+
+Then(/^the body\.status should equal "([^"]+)"$/, function (status: string) {
+  expect(lastResponse.body.status).to.equal(status);
+});
+
+Then(/^the delivery should no longer exist in the database$/, async function () {
+  const gone = await Delivery.findOne({ deliveryId: lastDeliveryId });
+  expect(gone).to.be.null;
+});
+
+Then(/^every returned delivery should belong to \{driverId\}$/, function () {
+  const list = lastResponse.body.delivery;
+  expect(list.every((d: any) => d.assignedTo === driverId)).to.be.true;
+});
+
+/****  UTIL SEED ****/
+Given("a delivery already exists", async function () {
+  const delivery = await new Delivery({
+    ...validPayload(),
+    deliveryId: uuidv4(),
+    status: "in-progress",
+    route: "none",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }).save();
+
+  lastDeliveryId = delivery.deliveryId;
 });
