@@ -7,7 +7,6 @@ import bodyParser from 'body-parser';
 import jwt from 'jsonwebtoken';
 import { expect } from 'chai';
 import { v4 as uuidv4 } from 'uuid';
-
 import User from '../../../models/user.model';
 
 interface Payload { [key: string]: any; }
@@ -21,23 +20,18 @@ let lastResponse: Response;
 
 // --- GLOBAL SETUP ---
 BeforeAll(async () => {
-  // ensure no active connection
   if (mongoose.connection.readyState !== 0) {
     await mongoose.disconnect();
   }
-  // set JWT secret
   process.env.JWT_SECRET = 'testsecret';
-  // start in-memory MongoDB
   mongoServer = await MongoMemoryServer.create();
   await mongoose.connect(mongoServer.getUri());
 
-  // import and mount user router (uses '/user')
   const { default: userRouter } = await import('../../../routes/user.route');
   app = express();
   app.use(bodyParser.json());
   app.use('/user', userRouter);
 
-  // seed admin user and generate JWT token
   const adminId = uuidv4();
   await User.create({
     userId: adminId,
@@ -57,31 +51,56 @@ AfterAll(async () => {
 
 // --- STEP DEFINITIONS ---
 Given('la aplicación está corriendo en {string}', function (_url: string) {
-  // using request(app)
+  // usamos request(app)
 });
 
-Given('existe un usuario admin con email {string} y password {string}', function (_email: string, _password: string) {
-  // admin seeded in BeforeAll
+Given('existe un usuario admin con email {string} y password {string}', function (_e: string, _p: string) {
+  // admin seed en BeforeAll
 });
 
 Given('estoy autenticado como admin', function () {
   expect(adminToken).to.be.a('string').and.to.have.length.greaterThan(0);
 });
 
-When(/^hago POST \/user con el siguiente payload:$/, async function (dataTable: DataTable) {
+When(/^hago POST \/user\/register con el siguiente payload:$/, async function (dataTable: DataTable) {
   const payload: Payload = {};
   dataTable.hashes().forEach(row => {
     payload[row['campo']] = row['valor'];
   });
   lastResponse = await request(app)
-    .post('/user')
+    .post('/user/register')
     .send(payload)
     .set('Authorization', `Bearer ${adminToken}`)
     .set('Accept', 'application/json');
-  if (lastResponse.body.userId) {
-    testUserId = lastResponse.body.userId;
-  }
+  // Capture created userId for reuse
+  const created = await User.findOne({ email: payload.email });
+  testUserId = created!.userId;
 });
+
+Then('el status de la respuesta debe ser {int}', function (expected: number) {
+  expect(lastResponse.status).to.equal(expected);
+});
+
+Then('el body debe contener un {string}', function (field: string) {
+  expect(lastResponse.body).to.have.property(field);
+});
+
+Given('existe un usuario con email {string} y password {string} y role {string}',
+  async function (email: string, password: string, role: string) {
+    // Reuse existing or create if absent
+    let user = await User.findOne({ email });
+    if (!user) {
+      await request(app)
+        .post('/user/register')
+        .send({ name: 'Temp', email, password, role })
+        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Accept', 'application/json');
+      user = await User.findOne({ email });
+    }
+    expect(user).to.not.be.null;
+    testUserId = user!.userId;
+  }
+);
 
 When(/^hago POST \/user\/login con:$/, async function (dataTable: DataTable) {
   const creds: Payload = {};
@@ -94,14 +113,9 @@ When(/^hago POST \/user\/login con:$/, async function (dataTable: DataTable) {
     .set('Accept', 'application/json');
 });
 
-Given('existe un usuario con email {string} y password {string}', async function (email: string, password: string) {
-  const res = await request(app)
-    .post('/user')
-    .send({ name: 'Temp', email, password })
-    .set('Authorization', `Bearer ${adminToken}`)
-    .set('Accept', 'application/json');
-  expect(res.status).to.equal(201);
-  testUserId = res.body.userId;
+Given('existe un usuario y tengo su {string}', function (key: string) {
+  expect(key).to.equal('userId');
+  expect(testUserId).to.be.a('string').and.to.have.length.greaterThan(0);
 });
 
 When(/^hago GET \/user\/{userId}$/, async function () {
@@ -113,9 +127,7 @@ When(/^hago GET \/user\/{userId}$/, async function () {
 
 When(/^hago PUT \/user\/{userId} con:$/, async function (dataTable: DataTable) {
   const update: Payload = {};
-  dataTable.hashes().forEach(row => {
-    update[row['campo']] = row['valor'];
-  });
+  dataTable.hashes().forEach(row => { update[row['campo']] = row['valor']; });
   lastResponse = await request(app)
     .put(`/user/${testUserId}`)
     .send(update)
@@ -129,21 +141,8 @@ When(/^hago DELETE \/user\/{userId}$/, async function () {
     .set('Authorization', `Bearer ${adminToken}`);
 });
 
-Given('existe un usuario y tengo su {string}', function (key: string) {
-  expect(key).to.equal('userId');
-  expect(testUserId).to.be.a('string').and.to.have.length.greaterThan(0);
-});
-
 Then(/^body\.userId debe ser \{userId\}$/, function () {
   expect(lastResponse.body.userId).to.equal(testUserId);
-});
-
-Then('el status de la respuesta debe ser {int}', function (expectedStatus: number) {
-  expect(lastResponse.status).to.equal(expectedStatus);
-});
-
-Then('el body debe contener un {string}', function (field: string) {
-  expect(lastResponse.body).to.have.property(field);
 });
 
 Then('body.name debe ser {string}', function (expectedName: string) {

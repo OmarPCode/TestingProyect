@@ -9,17 +9,18 @@ Feature: User Management API
     And estoy autenticado como admin
 
   Scenario: Registrar un nuevo usuario
-    When hago POST /users con el siguiente payload:
+    When hago POST /user/register con el siguiente payload:
       | campo    | valor             |
       | name     | John Doe          |
       | email    | john@example.com  |
       | password | secret123         |
-    Then el status de la respuesta debe ser 201
-    And el body debe contener un "userId"
+      | role     | user              |
+    Then el status de la respuesta debe ser 200
+    And el body debe contener un "message"
 
   Scenario: Inicio de sesión de usuario
-    Given existe un usuario con email "john@example.com" y password "secret123"
-    When hago POST /users/login con:
+    Given existe un usuario con email "john@example.com" y password "secret123" y role "user"
+    When hago POST /user/login con:
       | campo    | valor             |
       | email    | john@example.com  |
       | password | secret123         |
@@ -28,15 +29,13 @@ Feature: User Management API
 
   Scenario: Obtener usuario por ID
     Given existe un usuario y tengo su "userId"
-    And estoy autenticado como admin
-    When hago GET /users/{userId}
+    When hago GET /user/{userId}
     Then el status de la respuesta debe ser 200
     And body.userId debe ser {userId}
 
   Scenario: Actualizar usuario
     Given existe un usuario y tengo su "userId"
-    And estoy autenticado como admin
-    When hago PUT /users/{userId} con:
+    When hago PUT /user/{userId} con:
       | campo | valor     |
       | name  | Jane Doe  |
     Then el status de la respuesta debe ser 200
@@ -44,7 +43,6 @@ Feature: User Management API
 
   Scenario: Eliminar usuario
     Given existe un usuario y tengo su "userId"
-    And estoy autenticado como admin
-    When hago DELETE /users/{userId}
+    When hago DELETE /user/{userId}
     Then el status de la respuesta debe ser 200
     And el usuario ya no debe existir
