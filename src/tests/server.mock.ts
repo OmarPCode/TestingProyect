@@ -5,7 +5,6 @@ import { config } from "dotenv";
 config();
 const app = express();
 
-// Apply necessary middleware
 app.use(bodyParser.json());
 app.use(routesIndex);
 

@@ -22,7 +22,6 @@ class userController {
       }
       res.status(HTTP_STATUS.SUCCESS).json(results);
     } catch (err) {
-      console.error("Error fetching all users:", err);
       res.status(HTTP_STATUS.NOT_FOUND).send({
         message: xss("No users found"),
       });
@@ -34,7 +33,6 @@ class userController {
       const results = await User.find({ role: "driver" }, { password: 0 });
       res.status(HTTP_STATUS.SUCCESS).json(results);
     } catch (err) {
-      console.error("Error fetching drivers:", err);
       res.status(HTTP_STATUS.NOT_FOUND).send({
         message: xss("No drivers found"),
       });
@@ -62,7 +60,6 @@ class userController {
 
       res.status(HTTP_STATUS.SUCCESS).json(sanitizedUser);
     } catch (err) {
-      console.error("Error fetching user by ID:", err);
       res.status(HTTP_STATUS.NOT_FOUND).send({
         message: xss("Error fetching user"),
       });
@@ -78,7 +75,6 @@ class userController {
       }
       return existingUser;
     } catch (err) {
-      console.error("Error fetching user by ID:", err);
       throw new Error("Error fetching user");
     }
   }
@@ -101,7 +97,6 @@ class userController {
 
       res.status(HTTP_STATUS.SUCCESS).json(updatedUser);
     } catch (err) {
-      console.error("Error updating user:", err);
       res.status(HTTP_STATUS.BAD_REQUEST).send({
         message: xss("Error updating user"),
       });
@@ -137,7 +132,6 @@ class userController {
         .status(HTTP_STATUS.SUCCESS)
         .send({ message: "Password updated successfully" });
     } catch (err) {
-      console.error("Error updating password:", err);
       res.status(HTTP_STATUS.BAD_REQUEST).send({
         message: xss("Error updating password"),
       });
@@ -156,7 +150,6 @@ class userController {
       const deletedUser = await User.deleteOne({ userId });
       res.status(HTTP_STATUS.SUCCESS).json(deletedUser);
     } catch (err) {
-      console.error("Error deleting user:", err);
       res.status(HTTP_STATUS.BAD_REQUEST).send({
         message: xss("Error deleting user"),
       });
@@ -198,7 +191,6 @@ class userController {
         try {
           await rankingControllers.start({ userId });
         } catch (err) {
-          console.error("Error creating ranking for driver:", err);
           throw new Error("Error creating ranking for driver");
         }
       }
@@ -207,7 +199,6 @@ class userController {
         .status(HTTP_STATUS.SUCCESS)
         .send({ message: "User registered successfully" });
     } catch (err) {
-      console.error("Error registering user:", err);
       res.status(HTTP_STATUS.BAD_REQUEST).send({
         message: xss("Error registering user"),
       });
@@ -255,7 +246,6 @@ class userController {
         .status(HTTP_STATUS.SUCCESS)
         .send({ token, message: "Login successful" });
     } catch (err) {
-      console.error("Error logging in user:", err);
       res.status(HTTP_STATUS.BAD_REQUEST).send({
         message: xss("Error logging in user"),
       });
@@ -290,7 +280,6 @@ class userController {
         .status(HTTP_STATUS.SUCCESS)
         .send({ message: "Profile picture uploaded successfully" });
     } catch (err) {
-      console.error("Error uploading profile picture:", err);
       res.status(HTTP_STATUS.BAD_REQUEST).send({
         message: xss("Error uploading profile picture"),
       });
@@ -320,7 +309,6 @@ class userController {
 
       fileStream.pipe(res);
     } catch (err) {
-      console.error("Error fetching profile picture:", err);
       res.status(HTTP_STATUS.BAD_REQUEST).send({
         message: xss("Error fetching profile picture"),
       });

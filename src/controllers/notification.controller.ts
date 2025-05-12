@@ -37,7 +37,6 @@ class notificationController {
       const savedNotification = await newNotification.save();
       res.status(HTTP_STATUS.SUCCESS).json(savedNotification);
     } catch (err) {
-      console.error("Error creating notification:", err);
       res.status(HTTP_STATUS.BAD_REQUEST).send({
         message: xss("Error creating notification"),
       });
@@ -49,7 +48,6 @@ class notificationController {
       const results = await Notification.find({}).sort({ createdAt: -1 });
       res.status(HTTP_STATUS.SUCCESS).json(results);
     } catch (err) {
-      console.error("Error fetching all notifications:", err);
       res.status(HTTP_STATUS.NOT_FOUND).send({
         message: xss("No notifications found"),
       });
@@ -76,7 +74,6 @@ class notificationController {
 
       res.status(HTTP_STATUS.SUCCESS).json(sanitizedNotification);
     } catch (err) {
-      console.error("Error fetching notification by ID:", err);
       res.status(HTTP_STATUS.NOT_FOUND).send({
         message: xss("Error fetching notification"),
       });
@@ -97,7 +94,6 @@ class notificationController {
         .status(HTTP_STATUS.SUCCESS)
         .json({ notification: existingNotification, user: user });
     } catch (err) {
-      console.error("Error fetching notifications for person:", err);
       res.status(HTTP_STATUS.NOT_FOUND).send({
         message: xss("Error fetching notifications for person"),
       });
@@ -125,7 +121,6 @@ class notificationController {
 
       res.status(HTTP_STATUS.SUCCESS).json(updatedNotification);
     } catch (err) {
-      console.error("Error updating notification:", err);
       res.status(HTTP_STATUS.BAD_REQUEST).send({
         message: xss("Error updating notification"),
       });
@@ -148,7 +143,6 @@ class notificationController {
       });
       res.status(HTTP_STATUS.SUCCESS).json(deletedNotification);
     } catch (err) {
-      console.error("Error deleting notification:", err);
       res.status(HTTP_STATUS.BAD_REQUEST).send({
         message: xss("Error deleting notification"),
       });
@@ -181,7 +175,6 @@ class notificationController {
 
       return savedNotification;
     } catch (err) {
-      console.error("Error saving notification from socket:", err);
       throw new Error("Error saving notification");
     }
   }
