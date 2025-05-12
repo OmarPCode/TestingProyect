@@ -4,14 +4,15 @@
   "description": "Smart delivery management system",
   "main": "dist/src/index.js",
   "scripts": {
-    "test": "jest --runInBand --detectOpenHandles",
+    "test": "jest --runInBand --detectOpenHandles && npm run bdd",
     "test:coverage": "jest --coverage",
     "pretest:bdd": "tsc",
     "bdd": "cucumber-js --require-module ts-node/register --require tests/bdd/steps/**/*.ts",
     "start": "node .",
     "dev": "nodemon src/index.ts",
     "build": "tsc",
-    "postinstall": "npm run build"
+    "postinstall": "npm run build",
+    "prepare": "husky install"
   },
   "author": "",
   "license": "ISC",
@@ -27,6 +28,7 @@
     "express-session": "^1.18.1",
     "express-validator": "^7.2.0",
     "helmet": "^8.1.0",
+    "husky": "^9.1.7",
     "jsonwebtoken": "^9.0.2",
     "mongodb-memory-server": "^10.1.4",
     "mongoose": "^8.7.3",
