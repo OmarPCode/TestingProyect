@@ -235,4 +235,65 @@ describe("Delivery Controller", () => {
       );
     });
   });
+
+  describe("getByDriver", () => {
+    it("returns deliveries by driver (200)", async () => {
+      const deliveries = [
+        { deliveryId: "d1", assignedTo: "driver1" },
+        { deliveryId: "d2", assignedTo: "driver1" }
+      ];
+      (Delivery.find as jest.Mock).mockReturnValue({ sort: jest.fn().mockReturnValue(deliveries) });
+      (userControllers.getId as jest.Mock).mockResolvedValueOnce({ id: "driver1" });
+
+      const res = mockRes();
+      await deliveryControllers.getByDriver({ query: { driverId: "driver1" } } as any, res);
+
+      expect(res.status).toHaveBeenCalledWith(HTTP_STATUS.SUCCESS);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ delivery: deliveries }));
+    });
+
+    it("returns 404 if driver has no deliveries", async () => {
+      (Delivery.find as jest.Mock).mockReturnValue({ sort: jest.fn().mockReturnValue([]) });
+
+      const res = mockRes();
+      await deliveryControllers.getByDriver({ query: { driverId: "unknown" } } as any, res);
+
+      expect(res.status).toHaveBeenCalledWith(HTTP_STATUS.NOT_FOUND);
+      expect(res.send).toHaveBeenCalledWith(expect.objectContaining({ message: "Error fetching deliveries by driver" }));
+    });
+  });
+
+  describe("getAllActive", () => {
+    it("returns active deliveries (200)", async () => {
+      const results = [{ deliveryId: "d1", status: "in-progress", assignedTo: "u1" }];
+      (Delivery.find as jest.Mock).mockReturnValue({ sort: jest.fn().mockReturnValue(results) });
+      (userControllers.getId as jest.Mock).mockResolvedValueOnce({ id: "u1" });
+
+      const res = mockRes();
+      await deliveryControllers.getAllActive({} as any, res);
+
+      expect(res.status).toHaveBeenCalledWith(HTTP_STATUS.SUCCESS);
+      expect(res.json).toHaveBeenCalled();
+    });
+  });
+
+  describe("getByDate", () => {
+    it("returns deliveries by date range (200)", async () => {
+      const results = [{ deliveryId: "d1", assignedTo: "u1", scheduledTime: new Date() }];
+      (Delivery.find as jest.Mock).mockReturnValue({ sort: jest.fn().mockReturnValue(results) });
+      (userControllers.getId as jest.Mock).mockResolvedValueOnce({ id: "u1" });
+
+      const res = mockRes();
+      await deliveryControllers.getByDate({ body: { startDate: new Date(), endDate: new Date() } } as any, res);
+
+      expect(res.status).toHaveBeenCalledWith(HTTP_STATUS.SUCCESS);
+      expect(res.json).toHaveBeenCalled();
+    });
+
+    it("returns 400 if missing dates or no results", async () => {
+      const res = mockRes();
+      await deliveryControllers.getByDate({ body: {} } as any, res);
+      expect(res.status).toHaveBeenCalledWith(HTTP_STATUS.BAD_REQUEST);
+    });
+  });
 });
