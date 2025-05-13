@@ -1,14 +1,6 @@
-/**
- * tests/integration/chatMessagesIntegration.test.ts
- * -------------------------------------------------
- * 1) GET /      → 200
- * 2) POST nuevo → 200
- * 3) POST dup   → 400
- */
 
 process.env.DB_URL = 'mongodb://localhost:27017/dummy';
 
-/* ---------- Mock del modelo ChatMessage ---------- */
 type Msg = {
   messageId:  string;
   fromUserId: string;
@@ -18,7 +10,7 @@ type Msg = {
   _id:        string;
   createdAt:  Date;
   toObject(): Msg;
-  save: jest.Mock;            // declaramos save en la interfaz
+  save: jest.Mock;            
 };
 
 const store: Msg[] = [
@@ -31,7 +23,7 @@ const store: Msg[] = [
     _id:        'msg1',
     createdAt:  new Date(),
     toObject() { return this; },
-    save: jest.fn(),          // no se usa para el mensaje precargado
+    save: jest.fn(),         
   },
 ];
 
@@ -41,16 +33,16 @@ const ChatMessageMock: any = jest.fn().mockImplementation((payload: any) => {
     _id: payload.messageId || 'newId',
     createdAt: new Date(),
     toObject() { return this; },
-    save: jest.fn(),          // se define justo aquí
+    save: jest.fn(),         
   };
 
-  // save() resuelve con el propio documento
+
   doc.save.mockResolvedValue(doc);
 
   return doc;
 });
 
-// métodos estáticos
+
 ChatMessageMock.find = jest.fn().mockImplementation(() => Promise.resolve(store));
 
 ChatMessageMock.findOne = jest.fn().mockImplementation(
@@ -60,24 +52,24 @@ ChatMessageMock.findOne = jest.fn().mockImplementation(
 
 jest.mock('../../models/chatMessage.model', () => ChatMessageMock);
 
-/* ---------- Mock de middlewares ---------- */
+
 jest.mock('../../middlewares', () => ({
   authenticate: (_r: any, _s: any, n: any) => n(),
   authorize: () => (_r: any, _s: any, n: any) => n(),
   validateRequest: (_r: any, _s: any, n: any) => n(),
 }));
 
-/* ---------- Imports después de mocks ---------- */
+
 import express from 'express';
 import request from 'supertest';
 import chatRouter from '../../routes/chatMessage.route';
 
-/* Mini‑app con solo las rutas de chat */
+
 const app = express();
 app.use(express.json());
 app.use('/', chatRouter);
 
-/* ---------- Tests ---------- */
+
 describe('ChatMessage routes', () => {
   it('GET / → 200 y lista', async () => {
     const res = await request(app).get('/');
@@ -99,13 +91,13 @@ describe('ChatMessage routes', () => {
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('messageId', 'msg2');
 
-    // agrega al store para que el siguiente POST sea duplicado
+
     store.push({ ...payload, _id: 'msg2', toObject() { return this; }, save: jest.fn() });
   });
 
   it('POST / duplicado → 400', async () => {
     const duplicate = {
-      messageId:  'msg2', // ya existe
+      messageId:  'msg2', 
       fromUserId: 'u1',
       toUserId:   'u2',
       deliveryId: 'd1',
