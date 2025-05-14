@@ -31,21 +31,21 @@ When(/^I log in as "([^"]+)" with password "([^"]+)"$/, async (email: string, pa
   await driver.findElement(By.css('#username')).sendKeys(email);
   await driver.findElement(By.css('#password')).sendKeys(password);
   await driver.findElement(By.css('button[type="button"]')).click();
+  await driver.wait(until.urlIs(`${BASE_URL}/`), 15_000);
 });
 
-Then('I should see the deliveries list', async () => {
-  await driver.wait(until.elementLocated(By.css('h3.delivery-title')), 15_000);
-  const title = await driver.findElement(By.css('h3.delivery-title')).getText();
-  expect(title.toLowerCase()).to.contain('envios');
+When('I am on the users page', async () => {
+  await driver.get(`${BASE_URL}/users`);
+  await driver.wait(until.elementLocated(By.css('h3.delivery-title')), 10_000);
 });
 
-When('I click the logout button', async () => {
-  const logoutBtn = await driver.findElement(By.css('button.avatar'));
-  await logoutBtn.click();
-});
-
-Then('I should be redirected to the login page', async () => {
-  await driver.wait(until.urlIs(`${BASE_URL}/login`), 15_000);
-  const form = await driver.findElement(By.css('form'));
-  expect(form).to.exist;
+Then('I should see the users list', async () => {
+  await driver.wait(
+    until.elementsLocated(By.css('.users-list-container li')),
+    15_000
+  );
+  const listItems = await driver.findElements(
+    By.css('.users-list-container li')
+  );
+  expect(listItems.length).to.be.greaterThan(0);
 });

@@ -12,7 +12,6 @@ jest.mock("../../models/notification.model", () => {
 import { notificationControllers, userControllers } from "../../controllers";
 import { HTTP_STATUS } from "../../types/http-status-codes";
 
-/* helpers */
 const resMock = () =>
   ({
     status: jest.fn().mockReturnThis(),
