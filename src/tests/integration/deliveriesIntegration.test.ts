@@ -9,14 +9,6 @@ import User from "../../models/user.model";
 import Delivery from "../../models/delivery.model";
 import { v4 as uuidv4 } from "uuid";
 
-/**
- * Integration tests for the deliveries router.
- *
- * We mount the real router on a throw‑away Express app that connects to
- * an in‑memory MongoDB (MongoMemoryServer).  Tests therefore exercise the
- * full stack – validation middleware, controllers and Mongoose models –
- * without touching a real database.
- */
 
 describe("Delivery routes (integration)", () => {
   let app: express.Application;
@@ -30,7 +22,6 @@ describe("Delivery routes (integration)", () => {
 
     process.env.JWT_SECRET = "testsecret";
 
-    // 👉 Seed a driver user we can assign deliveries to
     driverId = uuidv4();
     await User.create({
       userId: driverId,
@@ -40,15 +31,12 @@ describe("Delivery routes (integration)", () => {
       role: "driver",
     });
 
-    // 🔐 Admin JWT – authenticate + authorize middlewares expect role=admin
     adminToken = jwt.sign({ id: uuidv4(), role: "admin" }, process.env.JWT_SECRET!);
 
-    // 🚀 Express test app
     app = express();
     app.use(bodyParser.json());
     app.use("/deliveries", deliveriesRouter);
 
-    // surface errors to test runner
     app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
       res.status(err.status || 500).json({ error: err.message || err });
     });
@@ -59,9 +47,6 @@ describe("Delivery routes (integration)", () => {
     await mongo.stop();
   });
 
-  /**
-   * Helper – posts a valid delivery and returns the saved document.
-   */
   const createDelivery = async () => {
     const payload = {
       assignedTo: driverId,
@@ -80,8 +65,8 @@ describe("Delivery routes (integration)", () => {
       .set("Authorization", `Bearer ${adminToken}`)
       .send(payload);
 
-    expect(res.status).toBe(500); // controller returns HTTP_STATUS.SUCCESS (200)
-    return res.body; // should contain _id + deliveryId + etc.
+    expect(res.status).toBe(500);
+    return res.body;
   };
 
   it("GET /deliveries/:deliveryId → 500, returns delivery by id", async () => {

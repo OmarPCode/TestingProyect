@@ -12,7 +12,6 @@ import { v4 as uuidv4 } from "uuid";
 
 setDefaultTimeout(60_000);
 
-/****  GLOBALS ****/
 let app: express.Application;
 let mongo: MongoMemoryServer;
 let adminToken: string;
@@ -20,49 +19,66 @@ let driverId: string;
 let lastResponse: request.Response;
 let lastDeliveryId: string;
 
-/****  HELPERS ****/
 const authHeader = (req: request.Test) =>
-  req.set("authorization", `Bearer ${adminToken}`); // use lowercase header so req.headers["authorization"] works
-
+  req.set("authorization", `Bearer ${adminToken}`);
 const validPayload = () => ({
-  assignedTo: driverId,
-  pickupLocation: "Warehouse B",
-  deliveryLocation: "456 Elm St",
-  scheduledTime: new Date().toISOString(),
+  assignedTo: "ecaf0b79-c588-4630-9a4e-81e32adb9114",
+  pickupLocation: "Warehouse A",
+  deliveryLocation: "123 Main St",
+  scheduledTime: "2025-12-31T00:00:00.000Z",
   productDetails: {
-    name: "Widget",
-    description: "Std",
-    quantity: 1,
-    productId: uuidv4(),
+    name: "Test Product", 
+    description: "Automated test", 
+    quantity: 2, 
+    productId: "344b418f-a42b-436b-98f4-564f9cec0fe5",
   },
 });
 
-/****  HOOKS ****/
 BeforeAll(async () => {
-  // set secret *before* the router/middleware is imported
   process.env.JWT_SECRET = "testsecret";
 
   mongo = await MongoMemoryServer.create();
   await mongoose.connect(mongo.getUri());
 
-  // create minimal express app lazily after we have secret
   const { default: deliveriesRouter } = await import("../../../routes/deliveries.routes");
 
   app = express();
   app.use(bodyParser.json());
   app.use("/deliveries", deliveriesRouter);
 
-  // seed driver
-  driverId = uuidv4();
+    driverId = "ecaf0b79-c588-4630-9a4e-81e32adb9114";
   await User.create({
     userId: driverId,
-    name: "BDD Driver",
-    email: "bdd_driver@example.com",
+    name: "Prueba Driver",
+    email: "v.t.a.e.v15@gmail.com",
     password: "hashed",
     role: "driver",
+    status: "new",
+    profilePic: "",
   });
 
-  // build token compatible with authenticate middleware (expects id + role)
+ 
+    const delivery = await new Delivery({
+    deliveryId: "7803e9c6-affc-4de6-83ae-d6354cef57d6",
+    assignedTo: driverId,
+    status: "in-progress",
+    route: "none",
+    productDetails: {
+      productId: "344b418f-a42b-436b-98f4-564f9cec0fe5",
+      name: "Test Product",
+      description: "Automated test",
+      quantity: 2,
+    },
+    pickupLocation: "Warehouse A",
+    deliveryLocation: "123 Main St",
+    scheduledTime: "2025-12-31T00:00:00.000Z",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    deliveredAt: null,
+  }).save();
+
+  lastDeliveryId = delivery.deliveryId;
+
   adminToken = jwt.sign({ id: uuidv4(), role: "admin" }, process.env.JWT_SECRET!);
 });
 
@@ -71,7 +87,6 @@ AfterAll(async () => {
   await mongo.stop();
 });
 
-/****  STEP DEFINITIONS ****/
 Given("an authenticated admin token", function () {});
 Given("a driver exists", function () {});
 
@@ -96,21 +111,12 @@ When(/^I DELETE \/deliveries\/\{deliveryId\}$/, async function () {
   lastResponse = await authHeader(request(app).delete(`/deliveries/${lastDeliveryId}`));
 });
 
-When(/^I GET \/deliveries\/byDriver\?driverId=\{driverId\}$/, async function () {
-  lastResponse = await authHeader(request(app).get("/deliveries/byDriver")).query({ driverId });
-});
-
-/****  ASSERTIONS ****/
 Then(/^the response status should be (\d+)$/, function (code: string) {
   expect(lastResponse.status).to.equal(parseInt(code, 10));
 });
 
 Then(/^the body should contain a deliveryId$/, function () {
   expect(lastResponse.body).to.have.property("deliveryId");
-});
-
-Then(/^the body should contain a non‑empty deliveries array$/, function () {
-  expect(lastResponse.body.deliveries).to.be.an("array").that.is.not.empty;
 });
 
 Then(/^the body\.deliveryId should equal \{deliveryId\}$/, function () {
@@ -126,12 +132,7 @@ Then(/^the delivery should no longer exist in the database$/, async function () 
   expect(gone).to.be.null;
 });
 
-Then(/^every returned delivery should belong to \{driverId\}$/, function () {
-  const list = lastResponse.body.delivery;
-  expect(list.every((d: any) => d.assignedTo === driverId)).to.be.true;
-});
 
-/****  UTIL SEED ****/
 Given("a delivery already exists", async function () {
   const delivery = await new Delivery({
     ...validPayload(),

@@ -3,7 +3,6 @@ import { incidentControllers } from "../../controllers/incidents.controller";
 import { HTTP_STATUS } from "../../types/http-status-codes";
 import { Request, Response } from "express";
 
-// Mock model methods
 jest.mock("../../models/incident.model", () => {
   const M: any = jest.fn();
   ["find", "findOne", "findOneAndUpdate", "deleteOne"].forEach(
@@ -12,7 +11,6 @@ jest.mock("../../models/incident.model", () => {
   return M;
 });
 
-// Silence console.error
 jest.spyOn(console, "error").mockImplementation(() => {});
 
 const mockReq = (body = {}, params = {}, query = {}): Request & any => ({ body, params, query });

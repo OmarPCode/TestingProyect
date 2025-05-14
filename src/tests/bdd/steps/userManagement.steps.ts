@@ -18,7 +18,6 @@ let adminToken: string;
 let testUserId: string;
 let lastResponse: Response;
 
-// --- GLOBAL SETUP ---
 BeforeAll(async () => {
   if (mongoose.connection.readyState !== 0) {
     await mongoose.disconnect();
@@ -43,19 +42,15 @@ BeforeAll(async () => {
   adminToken = jwt.sign({ id: adminId, role: 'admin' }, process.env.JWT_SECRET!);
 });
 
-// --- GLOBAL TEARDOWN ---
 AfterAll(async () => {
   await mongoose.disconnect();
   await mongoServer.stop();
 });
 
-// --- STEP DEFINITIONS ---
 Given('la aplicación está corriendo en {string}', function (_url: string) {
-  // usamos request(app)
 });
 
 Given('existe un usuario admin con email {string} y password {string}', function (_e: string, _p: string) {
-  // admin seed en BeforeAll
 });
 
 Given('estoy autenticado como admin', function () {
@@ -72,7 +67,6 @@ When(/^hago POST \/user\/register con el siguiente payload:$/, async function (d
     .send(payload)
     .set('Authorization', `Bearer ${adminToken}`)
     .set('Accept', 'application/json');
-  // Capture created userId for reuse
   const created = await User.findOne({ email: payload.email });
   testUserId = created!.userId;
 });
@@ -87,7 +81,6 @@ Then('el body debe contener un {string}', function (field: string) {
 
 Given('existe un usuario con email {string} y password {string} y role {string}',
   async function (email: string, password: string, role: string) {
-    // Reuse existing or create if absent
     let user = await User.findOne({ email });
     if (!user) {
       await request(app)

@@ -63,7 +63,6 @@ import express from 'express';
 import request from 'supertest';
 import chatRouter from '../../routes/chatMessage.route';
 
-// Silence expected console.error during tests
 beforeAll(() => {
   jest.spyOn(console, 'error').mockImplementation((msg, ...args) => {
     const isExpected = typeof msg === 'string' && msg.includes('Error creating chat message');
