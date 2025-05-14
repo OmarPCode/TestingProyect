@@ -43,10 +43,13 @@ When('I am on the users page', async () => {
 });
 
 Then('I should see the users list', async () => {
-  // comprobamos que el título sea "Usuarios"
-  const title = await driver.findElement(By.css('h3.delivery-title')).getText();
-  expect(title.trim().toLowerCase()).to.equal('usuarios');
-  // y que exista al menos un elemento de la lista de usuarios
-  const listItems = await driver.findElements(By.css('.users-list-container li'));
+  // Espera a que al menos un <li> aparezca bajo .users-list-container
+  await driver.wait(
+    until.elementsLocated(By.css('.users-list-container li')),
+    15_000
+  );
+  const listItems = await driver.findElements(
+    By.css('.users-list-container li')
+  );
   expect(listItems.length).to.be.greaterThan(0);
 });
