@@ -1,43 +1,41 @@
-# TestigProyect
+# TestingProyect
 
-Github repository to be as practice during the course that would help with the project.
+This GitHub repository serves as a practice project during the course. It is designed to help with learning various practices for a Node.js-based project using TypeScript. The project includes several configurations, settings, and workflows to manage the repository, perform tests, and enforce coding standards.
 
-Here we can find .gitignore, .github folder with codeowners file and pull request template, simple hello world program and also different settings for the project repository.
+## Description
 
-## Conventional Commits
+TestingProyect is a Node.js-based application that demonstrates various software development practices such as unit testing, code linting, and enforcing commit message conventions. This project includes a simple "Hello World" program and uses GitHub Actions to automate continuous integration (CI) tasks such as running tests, checking code style, and ensuring proper commit messages.
 
-This repository follows the [Conventional Commits specification](https://www.conventionalcommits.org/en/v1.0.0/#specification) for commit messages.
+## Tools Used
 
-### Commit Message Format
+- **Node.js**: JavaScript runtime used for server-side development.
+- **TypeScript**: Superset of JavaScript that provides static typing.
+- **GitHub Actions**: CI/CD tool for automating workflows like testing, linting, and commit message validation.
+- **Jest**: Testing framework for running unit and integration tests.
+- **ESLint**: Linting tool for maintaining code quality.
+- **Danger**: Tool for automating pull request checks (e.g., commit messages).
+- **Pre-commit Hooks**: Hooks for ensuring code quality before committing.
+- **MongoDB (optional)**: In-memory database used for integration testing (via MongoMemoryServer).
 
-Each commit message must be structured as follows:
+## Requirements
 
-type[optional scope]: description
+- **Node.js**: Version 16 or higher.
+- **npm**: Node package manager (comes with Node.js).
+- **MongoDB** (for integration tests only): MongoDB is used for testing purposes; however, the application can run without it in certain environments.
 
-[optional body]
+## How to Run/Start the App
 
-[optional footer(s)]
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/your-username/TestingProyect.git
+   cd TestingProyect
 
-- **type**: Describes the category of the change (e.g., feat, fix, docs, style, refactor, test, chore).
-- **optional scope**: A noun describing a section of the codebase (e.g., fix(parser)).
-- **description**: A short summary of the change.
-- **optional body**: Additional contextual information.
-- **optional footer**: Metadata such as BREAKING CHANGE.
+## Steps to run the project:
+- npm install
+- npm run start
+- Same steps to run the backend and frontend at the same time for system tests
 
-### Example Commit Messages
-
-- feat(auth): add login functionality
-- fix(api): resolve issue with data fetching
-- docs: update README with installation steps
-
-### Breaking Changes
-
-Breaking changes must be indicated by adding ! after the type or by including BREAKING CHANGE: in the footer.
-
----
-
-### GitHub Action for Conventional Commits
-
-This repository uses the [webiny/action-conventional-commits](https://github.com/webiny/action-conventional-commits) GitHub Action to enforce Conventional Commits.
-
-A GitHub Action workflow is set up in .github/workflows/conventional-commits.yml to verify that all commit messages adhere to the Conventional Commits specification. Any commits that do not follow the specification will fail the workflow and must be corrected before merging.
+  
+- npm run test
+- npm run test:coverage
+- npm run system:(especific test) - example npm run system:deliveries
