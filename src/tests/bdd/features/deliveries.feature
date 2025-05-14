@@ -12,7 +12,7 @@ Feature: Deliveries API
   Scenario: List deliveries
     Given a delivery already exists
     When I GET /deliveries
-    Then the response status should be 404
+    Then the response status should be 200
 
   Scenario: Get delivery by id
     Given a delivery already exists

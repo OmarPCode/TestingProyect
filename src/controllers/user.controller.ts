@@ -70,12 +70,9 @@ class userController {
     try {
       const userId = user;
       const existingUser = await User.findOne({ userId }, { password: 0 });
-      if (!existingUser) {
-        throw new Error("User does not exist");
-      }
       return existingUser;
     } catch (err) {
-      throw new Error("Error fetching user");
+      console.log("Error fetching user by ID:", err);
     }
   }
 
