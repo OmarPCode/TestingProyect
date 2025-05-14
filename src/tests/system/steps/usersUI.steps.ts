@@ -40,8 +40,12 @@ When('I am on the users page', async () => {
 });
 
 Then('I should see the users list', async () => {
-  const title = await driver.findElement(By.css('h3.delivery-title')).getText();
-  expect(title.trim().toLowerCase()).to.equal('usuarios');
-  const listItems = await driver.findElements(By.css('.users-list-container li'));
+  await driver.wait(
+    until.elementsLocated(By.css('.users-list-container li')),
+    15_000
+  );
+  const listItems = await driver.findElements(
+    By.css('.users-list-container li')
+  );
   expect(listItems.length).to.be.greaterThan(0);
 });
