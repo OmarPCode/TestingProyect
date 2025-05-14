@@ -12,6 +12,7 @@
     "system:deliveries": "cucumber-js \"src/tests/system/features/deliveriesSystem.feature\" --require-module ts-node/register --require \"src/tests/system/steps/deliveriesSystem.steps.ts\" --tags \"@system\"",
     "system:userUI": "cucumber-js \"src/tests/system/features/usersUI.feature\" --require-module ts-node/register --require \"src/tests/system/steps/userUI.steps.ts\" --tags \"@system\"",
     "system:authUI": "cucumber-js \"src/tests/system/features/authUI.feature\" --require-module ts-node/register --require \"src/tests/system/steps/authUI.steps.ts\" --tags \"@system\"",
+    "system:userUI": "cucumber-js \"src/tests/system/features/usersUI.feature\" --require-module ts-node/register --require \"src/tests/system/steps/userUI.steps.ts\" --tags \"@system\"",
     "start": "node .",
     "dev": "nodemon src/index.ts",
     "build": "tsc",
