@@ -6,7 +6,6 @@ import { HTTP_STATUS } from "../../types/http-status-codes";
 import { RouteSuggestion as RouteType } from "../../types/routeSuggestion";
 import xss from "xss";
 
-// Mocks
 jest.mock("../../models/routeSuggestion.model", () => {
   const M: any = jest.fn();
   ["findOne", "find", "findOneAndUpdate", "deleteOne"].forEach(
@@ -17,7 +16,6 @@ jest.mock("../../models/routeSuggestion.model", () => {
 
 jest.mock("axios");
 
-// Silence console.error
 jest.spyOn(console, "error").mockImplementation(() => {});
 
 describe("RouteSuggestion Controller Unit Tests", () => {
@@ -44,9 +42,7 @@ describe("RouteSuggestion Controller Unit Tests", () => {
         createdAt: new Date()
       };
 
-      // findOne returns null
       (RouteSuggestion.findOne as jest.Mock).mockResolvedValueOnce(null);
-      // save implementation
       (RouteSuggestion as unknown as jest.Mock).mockImplementation(() => ({
         save: jest.fn().mockResolvedValueOnce(body),
       }));

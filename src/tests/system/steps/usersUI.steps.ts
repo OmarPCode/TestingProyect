@@ -31,22 +31,17 @@ When(/^I log in as "([^"]+)" with password "([^"]+)"$/, async (email: string, pa
   await driver.findElement(By.css('#username')).sendKeys(email);
   await driver.findElement(By.css('#password')).sendKeys(password);
   await driver.findElement(By.css('button[type="button"]')).click();
-  // esperamos a que redirija al dashboard
   await driver.wait(until.urlIs(`${BASE_URL}/`), 15_000);
 });
 
 When('I am on the users page', async () => {
-  // navegamos directamente
   await driver.get(`${BASE_URL}/users`);
-  // esperamos a que aparezca el título "Usuarios"
   await driver.wait(until.elementLocated(By.css('h3.delivery-title')), 10_000);
 });
 
 Then('I should see the users list', async () => {
-  // comprobamos que el título sea "Usuarios"
   const title = await driver.findElement(By.css('h3.delivery-title')).getText();
   expect(title.trim().toLowerCase()).to.equal('usuarios');
-  // y que exista al menos un elemento de la lista de usuarios
   const listItems = await driver.findElements(By.css('.users-list-container li'));
   expect(listItems.length).to.be.greaterThan(0);
 });

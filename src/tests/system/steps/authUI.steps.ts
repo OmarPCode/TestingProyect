@@ -34,7 +34,6 @@ When(/^I log in as "([^"]+)" with password "([^"]+)"$/, async (email: string, pa
 });
 
 Then('I should see the deliveries list', async () => {
-  // El login redirige a '/', que muestra la lista de envíos
   await driver.wait(until.elementLocated(By.css('h3.delivery-title')), 15_000);
   const title = await driver.findElement(By.css('h3.delivery-title')).getText();
   expect(title.toLowerCase()).to.contain('envios');

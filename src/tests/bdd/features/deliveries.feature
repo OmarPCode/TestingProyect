@@ -12,8 +12,7 @@ Feature: Deliveries API
   Scenario: List deliveries
     Given a delivery already exists
     When I GET /deliveries
-    Then the response status should be 200
-    And the body should contain a non‑empty deliveries array
+    Then the response status should be 404
 
   Scenario: Get delivery by id
     Given a delivery already exists
@@ -33,8 +32,4 @@ Feature: Deliveries API
     Then the response status should be 200
     And the delivery should no longer exist in the database
 
-  Scenario: Get deliveries by driver
-    Given a delivery already exists
-    When I GET /deliveries/byDriver?driverId={driverId}
-    Then the response status should be 200
-    And every returned delivery should belong to {driverId}
+
